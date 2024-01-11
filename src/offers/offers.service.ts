@@ -18,7 +18,6 @@ export class OffersService {
     const user = await this.usersService.findOne(userId);
     const wish = await this.wishesService.findOne(offer.itemId);
     const donations = Number(wish.raised) + offer.amount;
-    console.log(offer);
 
     if (user.id === wish.owner.id) {
       throw new BadRequestException('Вы не можете скидываться за свой подарок');
@@ -30,9 +29,11 @@ export class OffersService {
       );
     }
 
-    await this.wishesService.updateWish(offer.itemId, {
-      raised: donations,
-    });
+    await this.wishesService.updateWish(
+      offer.itemId,
+      { raised: donations },
+      userId,
+    );
 
     return this.offerRepository.save({ ...offer, user, item: wish });
   }

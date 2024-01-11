@@ -4,7 +4,6 @@ import { Wish } from './entities/wishes.entity';
 import { In, Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
 import { CreateWishesDto } from './dto/create-wishes.dto';
-import { UpdateWishesDto } from './dto/update-wishes.dto';
 
 @Injectable()
 export class WishesService {
@@ -23,22 +22,29 @@ export class WishesService {
     });
   }
 
-  async findOne(id) {
+  async findOne(id: number): Promise<Wish> {
     const wish = await this.wishRepository.findOne({
       where: { id },
       relations: ['owner', 'offers', 'offers.user'],
     });
 
+    if (!wish) {
+      throw new BadRequestException('Подарок не найден');
+    }
+
     return wish;
   }
 
-  async updateWish(id: number, wishDTO): Promise<Wish> {
+  async updateWish(id: number, wishDTO, userId): Promise<Wish> {
     const wish = await this.findOne(id);
 
     if (wishDTO.price && wish.offers.length > 0) {
       throw new BadRequestException(
         'Нельзя изменить стоимость, уже есть скинувшиеся',
       );
+    }
+    if (wish.owner.id !== userId) {
+      throw new BadRequestException('Вы не можете редактировать чужие подарки');
     }
 
     await this.wishRepository.update(id, wishDTO);
@@ -50,7 +56,7 @@ export class WishesService {
     const wish = await this.findOne(id);
 
     if (user && user.sub !== wish.owner.id) {
-      throw new BadRequestException('Yе найдено');
+      throw new BadRequestException('Не найдено');
     }
 
     if (wish.offers.length > 0) {

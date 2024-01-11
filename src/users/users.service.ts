@@ -17,6 +17,23 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
+    const existUsername = await this.userRepository.findOne({
+      where: {
+        username: createUserDto.username,
+      },
+    });
+    const existEmail = await this.userRepository.findOne({
+      where: {
+        email: createUserDto.email,
+      },
+    });
+
+    if (existUsername || existEmail) {
+      throw new BadRequestException(
+        'Пользователь с указанными данными уже зарегистрирован',
+      );
+    }
+
     const { password, ...user } = await this.userRepository.save({
       username: createUserDto.username,
       about: createUserDto.about,

@@ -40,7 +40,7 @@ export class WishesController {
 
   @UseGuards(JwtGuard)
   @Get(':id')
-  findOneWish(@Param('id') id) {
+  findOneWish(@Param('id') id: number) {
     return this.wishService.findOne(id);
   }
 
@@ -49,8 +49,9 @@ export class WishesController {
   updateWish(
     @Param('id') id: number,
     @Body() wishDTO: UpdateWishesDto,
+    @Req() { user },
   ): Promise<Wish> {
-    return this.wishService.updateWish(id, wishDTO);
+    return this.wishService.updateWish(id, wishDTO, user.sub);
   }
 
   @UseGuards(JwtGuard)
